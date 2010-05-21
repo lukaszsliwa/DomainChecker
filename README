@@ -1,0 +1,10 @@
+DomainChecker
+
+Ładuje domeny do kolejki:
+ domainchecker.py loader localhost 11300 domains
+
+Pobiera informacje o domenach i zapisuje w pliku domains.csv:
+ domainchecker.py client localhost 11300 domains
+
+
+
