@@ -13,6 +13,7 @@ __date__ ="$2010-05-18 18:17:13$"
 
 QUEUE = 'domains'
 EXIT = '~!@#$%^&*'
+USER_AGENT = 'Mozilla/5.0 (X11; U; Linux i686 (x86_64); pl-PL; rv:1.9.2.3)'
 
 class Domain(Thread):
     '''
@@ -39,11 +40,11 @@ class Domain(Thread):
         return 'http://who.is/whois/' + str(name) + '/'
 
     @staticmethod
-    def _google_info(name):
+    def _google_cache(name):
         '''
         Makes "google info" url
         '''
-        return 'http://webcache.googleusercontent.com/search?hl=en&q=cache%3A' + str(name)
+        return "http://webcache.googleusercontent.com/search?hl=en&q=cache:%s" % str(name)
 
     def _set_active(self, html):
         appears = 'appears to be available'
@@ -62,7 +63,12 @@ class Domain(Thread):
                 break
 
     def _set_cached_by_google(self):
-        pass
+        request = urllib2.Request(self._google_cache(self.name))
+        request.add_header('User-Agent', USER_AGENT)
+        request.unredirected_hdrs['User-agent'] = USER_AGENT
+        opener = urllib2.build_opener()
+        cached = opener.open(request).read()
+        self._cached_by_google = 0 if '<title>cache:%s - Google Search</title>' % self.name in cached else 1
 
     def _set_page_rank(self):
         pass
@@ -91,7 +97,7 @@ class Domain(Thread):
             site_info.renderContents().replace('&nbsp;', '').splitlines()
         self._set_created(items)
         self._set_alexa_rank(items)
-        #self._set_cached_by_google()
+        self._set_cached_by_google()
         #self._set_page_rank()
 
     @property
