@@ -71,7 +71,8 @@ class Domain(Thread):
         self._cached_by_google = 0 if '<title>cache:%s - Google Search</title>' % self.name in cached else 1
 
     def _set_page_rank(self):
-        pass
+        import page_rank
+        self._page_rank = page_rank.get_pagerank('http://' + str(self.name))
 
     def run(self):
 
@@ -86,7 +87,9 @@ class Domain(Thread):
                 break
 
         bs = BeautifulSoup(html)
+        
         self._set_active(bs.renderContents())
+
         site_info = BeautifulSoup(str(bs.find('div', { 'id': 'site_info' })))
         registry_info = BeautifulSoup(str(bs.find('span', { 'id': 'registry_whois' })))
         for info in [site_info, registry_info]:
@@ -95,10 +98,11 @@ class Domain(Thread):
                     tag.extract()
         items = registry_info.renderContents().replace('&nbsp;', '').splitlines() + \
             site_info.renderContents().replace('&nbsp;', '').splitlines()
+            
         self._set_created(items)
         self._set_alexa_rank(items)
         self._set_cached_by_google()
-        #self._set_page_rank()
+        self._set_page_rank()
 
     @property
     def name(self):
